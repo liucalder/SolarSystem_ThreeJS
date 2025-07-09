@@ -1,65 +1,58 @@
-import * as THREE from 'three'
-import { useRef, useState, useEffect } from 'react'
-import { useFrame, extend } from '@react-three/fiber'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { useRef, useEffect, useState } from 'react'
+import { useFrame } from '@react-three/fiber'
+import planetData from './PlanetData.js'
 import GUI from 'lil-gui'
 
-extend({ OrbitControls })
+const orbitScale = 10       // 1 AU = 5 scene units
+const sizeScale = 0.1      // 1 (1000km) = 0.1 scene units
+const speedScale = 365     // 365 = 1 full orbit for Earth
 
 export default function SolarSystem() {
-  const planet1Ref = useRef()
-  const planet2Ref = useRef()
   const angleRef = useRef(0)
+  const [globalSpeed, setGlobalSpeed] = useState(0.1)
 
-  const [speed, setSpeed] = useState(0.5)
+  const planetRefs = useRef({})
 
   useEffect(() => {
     const gui = new GUI()
-    gui.add({ speed }, 'speed', 0.01, 5000000).step(0.01).name('Orbit Speed').onChange(setSpeed)
+    gui.add({ globalSpeed }, 'globalSpeed', 0.1, 10).step(0.1).name('Global Speed').onChange(setGlobalSpeed)
   }, [])
 
   useFrame((state, delta) => {
-    angleRef.current += delta * speed
+    angleRef.current += delta * globalSpeed
 
-    if (planet1Ref.current) {
-      const a = 3
-      const b = 2
-      const t = angleRef.current
-      planet1Ref.current.position.x = a * Math.cos(t)
-      planet1Ref.current.position.z = b * Math.sin(t)
-    }
-
-    if (planet2Ref.current) {
-      const a = 6
-      const b = 4
-      const t = angleRef.current * 0.6
-      planet2Ref.current.position.x = a * Math.cos(t)
-      planet2Ref.current.position.z = b * Math.sin(t)
-    }
+    Object.entries(planetData).forEach(([name, { orbitRadius, speedMultiplier }]) => {
+      const ref = planetRefs.current[name]
+      if (ref) {
+        const t = (angleRef.current * speedScale) / speedMultiplier
+        const radius = orbitRadius * orbitScale
+        ref.position.x = radius * Math.cos(t)
+        ref.position.z = radius * Math.sin(t)
+      }
+    })
   })
 
   return (
     <>
-      // sun
+      {/* Sun */}
       <mesh position={[0, 0, 0]}>
         <sphereGeometry args={[1.2, 32, 32]} />
         <meshStandardMaterial emissive={'#ffaa00'} emissiveIntensity={2} color={'#ffcc33'} />
       </mesh>
 
-      // planet 1
-      <mesh ref={planet1Ref}>
-        <sphereGeometry args={[0.3, 32, 32]} />
-        <meshStandardMaterial color={'#3399ff'} />
-      </mesh>
+      {/* Planets map*/}
+      {Object.entries(planetData).map(([name, { size, color }]) => (
+        <mesh
+          key={name}
+          ref={(ref) => (planetRefs.current[name] = ref)}
+        >
+          <sphereGeometry args={[size * sizeScale, 32, 32]} />
+          <meshStandardMaterial emissive={color} emissiveIntensity={2} color={'#ff0000'}/>
+        </mesh>
+      ))}
 
-      // planet 2
-      <mesh ref={planet2Ref}>
-        <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial color={'#66ff66'} />
-      </mesh>
-
-      /* lights */
-      <pointLight position={[0, 0, 0]} intensity={2} distance={20} />
+      {/* Lights */}
+      <pointLight position={[0, 0, 0]} intensity={2} distance={200} />
       <ambientLight intensity={0.2} />
     </>
   )

@@ -2,15 +2,15 @@ import { useRef, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import planetData from './PlanetData.js'
 import GUI from 'lil-gui'
+import * as THREE from 'three'
 
-const orbitScale = 10       // 1 AU = 5 scene units
-const sizeScale = 0.1      // 1 (1000km) = 0.1 scene units
-const speedScale = 365     // 365 = 1 full orbit for Earth
+const orbitScale = 10       // 
+const sizeScale = 0.1      // 1000 km = 0.1 units in the scene
+const speedScale = 365     // 365 = 1 orbit on earth
 
 export default function SolarSystem() {
   const angleRef = useRef(0)
   const [globalSpeed, setGlobalSpeed] = useState(0.1)
-
   const planetRefs = useRef({})
 
   useEffect(() => {
@@ -39,6 +39,36 @@ export default function SolarSystem() {
         <sphereGeometry args={[1.2, 32, 32]} />
         <meshStandardMaterial emissive={'#ffaa00'} emissiveIntensity={2} color={'#ffcc33'} />
       </mesh>
+
+      {/* draw the lines for orbit*/}
+      // 
+      {Object.entries(planetData).map(([name, { orbitRadius }]) => {
+        const radius = orbitRadius * orbitScale
+
+        // New empty array for adding points
+        const points = []
+        // Loop 100 times to make a circle
+        for (let i = 0; i <= 100; i++) {
+          // Divide the circle into 100 even "steps"
+          const angle = (i / 100) * Math.PI * 2
+          // add the following to our vector
+          points.push(new THREE.Vector3(
+            radius * Math.cos(angle), // x position
+            0,                        // y = 0 because theres no tilt
+            radius * Math.sin(angle) // z position
+          ))
+        }
+        // BufferGeometry and use setFromPoints to draw the circle
+        const geometry = new THREE.BufferGeometry().setFromPoints(points)
+
+        // render the line
+        return (
+          <line key={`orbit-${name}`} geometry={geometry}>
+            <lineBasicMaterial color="#666666" linewidth={1} />
+          </line>
+        )
+      })}
+
 
       {/* Planets map*/}
       {Object.entries(planetData).map(([name, { size, color }]) => (

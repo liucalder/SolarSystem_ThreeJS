@@ -15,7 +15,7 @@ export default function SolarSystem() {
 
   useEffect(() => {
     const gui = new GUI()
-    gui.add({ globalSpeed }, 'globalSpeed', 0.1, 10).step(0.1).name('Global Speed').onChange(setGlobalSpeed)
+    gui.add({ globalSpeed }, 'globalSpeed', 0.1, 10).step(0.1).name('Orbit Speed').onChange(setGlobalSpeed)
   }, [])
 
   useFrame((state, delta) => {

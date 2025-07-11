@@ -18,7 +18,7 @@ export default function Experience() {
     <>
       <orbitControls args={[camera, gl.domElement]} />
       <SolarSystem />
-      <Particles color={0xffcc00} />
+      <Particles color={'#ffcc00'} />
     </>
   )
 }

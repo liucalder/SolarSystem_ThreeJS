@@ -13,12 +13,12 @@ export default function Experience() {
   useEffect(() => {
     scene.background = new THREE.Color('#2c2d2d') // lighter black
   }, [scene])
-
+  
   return (
     <>
       <orbitControls args={[camera, gl.domElement]} />
       <SolarSystem />
-      <Particles color={'#ffcc00'} />
+      <Particles color={'#ffffff'} />
     </>
   )
 }
